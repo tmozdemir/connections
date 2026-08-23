@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Make Connections</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#14171F;
+    --paper:#F6F1E7;
+    --paper-dim:#EAE3D3;
+    --line:#D8CFB8;
+    --text:#1B1D24;
+    --tier1:#F9DF6D;
+    --tier2:#A0C35A;
+    --tier3:#B0C4EF;
+    --tier4:#BA81C5;
+    --good:#4C7A4F;
+    --bad:#B5484A;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--ink);
+    color:var(--paper);
+    font-family:'Space Grotesk', sans-serif;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:32px 16px 64px;
+  }
+  .wrap{width:100%;max-width:640px;}
+  h1.brand{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:clamp(28px,6vw,40px);
+    letter-spacing:-0.01em;
+    margin:0 0 4px;
+    text-align:center;
+  }
+  .brand em{
+    font-style:italic;
+    font-weight:400;
+    color:var(--tier1);
+  }
+  .tagline{
+    text-align:center;
+    font-size:14px;
+    color:#A8ADBE;
+    margin:0 0 32px;
+    font-family:'IBM Plex Mono', monospace;
+    letter-spacing:.02em;
+  }
+
+  /* ---------- shared card ---------- */
+  .card{
+    background:var(--paper);
+    color:var(--text);
+    border-radius:18px;
+    padding:24px;
+    box-shadow:0 20px 50px -20px rgba(0,0,0,.5);
+  }
+
+  /* ---------- CREATE MODE ---------- */
+  .group-row{
+    display:flex;
+    gap:12px;
+    align-items:stretch;
+    margin-bottom:14px;
+    border-radius:12px;
+    overflow:hidden;
+    border:2px solid var(--line);
+    background:#fff;
+  }
+  .group-tier{
+    width:10px;
+    flex:0 0 10px;
+  }
+  .group-body{
+    flex:1;
+    padding:12px 14px;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .group-body input.cat-name{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:16px;
+    border:none;
+    border-bottom:1px solid var(--line);
+    padding:4px 2px 6px;
+    background:transparent;
+    color:var(--text);
+  }
+  .group-body input.cat-name:focus{outline:none;border-bottom-color:var(--text);}
+  .word-inputs{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:6px;
+  }
+  .word-inputs input{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+    text-transform:uppercase;
+    padding:7px 8px;
+    border:1px solid var(--line);
+    border-radius:6px;
+    background:var(--paper-dim);
+    color:var(--text);
+    width:100%;
+  }
+  .word-inputs input:focus{outline:none;border-color:var(--text);background:#fff;}
+  .tier-label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:#8a8368;
+    margin-top:-2px;
+  }
+
+  input.puzzle-title{
+    width:100%;
+    font-family:'Fraunces', serif;
+    font-size:20px;
+    font-weight:600;
+    padding:10px 12px;
+    border:1px solid var(--line);
+    border-radius:10px;
+    margin-bottom:18px;
+    background:#fff;
+    color:var(--text);
+  }
+  input.puzzle-title:focus{outline:none;border-color:var(--text);}
+
+  label.field-label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:#6b6552;
+    display:block;
+    margin-bottom:6px;
+  }
+
+  button{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:600;
+    font-size:15px;
+    border:none;
+    border-radius:10px;
+    padding:13px 20px;
+    cursor:pointer;
+    transition:transform .12s ease, box-shadow .12s ease;
+  }
+  button:active{transform:scale(.97);}
+  .btn-primary{
+    background:var(--text);
+    color:var(--paper);
+    width:100%;
+    margin-top:8px;
+  }
+  .btn-primary:hover{box-shadow:0 6px 16px -6px rgba(0,0,0,.4);}
+  .btn-ghost{
+    background:transparent;
+    color:var(--paper);
+    border:1px solid #3c4152;
+  }
+  .error-msg{
+    color:var(--bad);
+    font-size:13px;
+    font-family:'IBM Plex Mono', monospace;
+    margin:8px 0 0;
+    min-height:16px;
+  }
+
+  .share-box{
+    margin-top:18px;
+    padding-top:18px;
+    border-top:1px dashed var(--line);
+  }
+  .share-link-row{
+    display:flex;
+    gap:8px;
+  }
+  .share-link-row input{
+    flex:1;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    padding:10px 12px;
+    border:1px solid var(--line);
+    border-radius:8px;
+    background:var(--paper-dim);
+    color:var(--text);
+  }
+  .share-link-row button{
+    flex:0 0 auto;
+    background:var(--tier2);
+    color:#fff;
+    padding:10px 16px;
+    font-size:13px;
+  }
+  .copied-tag{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color:var(--good);
+    margin-top:6px;
+    height:16px;
+  }
+
+  .mode-toggle{
+    display:flex;
+    justify-content:center;
+    gap:8px;
+    margin-bottom:20px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+  }
+  .mode-toggle a{
+    color:#8a8fa3;
+    text-decoration:none;
+    padding:6px 12px;
+    border-radius:20px;
+    border:1px solid #2b3040;
+  }
+  .mode-toggle a.active{
+    background:var(--paper);
+    color:var(--text);
+    border-color:var(--paper);
+  }
+
+  /* ---------- PLAY MODE ---------- */
+  .play-title{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:22px;
+    text-align:center;
+    margin:0 0 6px;
+  }
+  .play-sub{
+    text-align:center;
+    font-size:13px;
+    color:#8a8368;
+    font-family:'IBM Plex Mono', monospace;
+    margin-bottom:18px;
+  }
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:8px;
+  }
+  .solved-row{
+    grid-column:1/-1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    height:78px;
+    border-radius:8px;
+    padding:6px 16px;
+    text-align:center;
+    animation:settle .5s ease both;
+    position:relative;
+    overflow:hidden;
+  }
+  .solved-row .cat{
+    font-family:'Fraunces', serif;
+    font-weight:700;
+    font-size:15px;
+    text-transform:uppercase;
+    letter-spacing:.02em;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    max-width:100%;
+  }
+  .solved-row .words{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    text-transform:uppercase;
+    margin-top:3px;
+    opacity:.85;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    max-width:100%;
+  }
+  .solved-row svg.squiggle{
+    position:absolute;
+    left:8%;
+    right:8%;
+    bottom:-3px;
+    width:84%;
+    height:10px;
+  }
+  @keyframes settle{
+    0%{transform:translateY(-6px) scale(.98);opacity:0;}
+    100%{transform:translateY(0) scale(1);opacity:1;}
+  }
+  .tile{
+    aspect-ratio:1/1;
+    background:var(--paper-dim);
+    border:1.5px solid var(--line);
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:6px;
+    font-family:'IBM Plex Mono', monospace;
+    font-weight:600;
+    font-size:clamp(11px,2.6vw,14px);
+    text-transform:uppercase;
+    cursor:pointer;
+    user-select:none;
+    transition:transform .1s ease, background .15s ease, border-color .15s ease;
+  }
+  .tile:hover{border-color:#a89f80;}
+  .tile.selected{
+    background:var(--text);
+    color:var(--paper);
+    transform:translateY(-2px);
+  }
+  .tile.shake{animation:shake .4s ease;}
+  @keyframes shake{
+    0%,100%{transform:translateX(0);}
+    20%{transform:translateX(-6px);}
+    40%{transform:translateX(6px);}
+    60%{transform:translateX(-4px);}
+    80%{transform:translateX(4px);}
+  }
+  .tile.flash-good{animation:flashgood .5s ease;}
+  @keyframes flashgood{
+    0%{background:var(--paper-dim);}
+    40%{background:var(--good);color:#fff;}
+    100%{background:var(--paper-dim);}
+  }
+
+  .status-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin:16px 0 14px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+  }
+  .mistakes{display:flex;gap:6px;align-items:center;}
+  .mistake-dot{
+    width:10px;height:10px;border-radius:50%;
+    background:var(--text);
+  }
+  .mistake-dot.used{background:var(--line);}
+  .hint-msg{
+    text-align:center;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color:var(--tier4);
+    min-height:18px;
+    margin-bottom:8px;
+    font-weight:600;
+  }
+  .action-row{
+    display:flex;
+    gap:10px;
+    margin-top:16px;
+  }
+  .action-row button{flex:1;}
+  .btn-secondary{
+    background:var(--paper-dim);
+    color:var(--text);
+    border:1px solid var(--line);
+  }
+  .btn-submit{
+    background:var(--tier3);
+    color:#fff;
+  }
+  .btn-submit:disabled{opacity:.4;cursor:default;}
+
+  .end-screen{text-align:center;}
+  .end-emoji-grid{
+    font-size:26px;
+    line-height:1.3;
+    letter-spacing:.15em;
+    margin:14px 0;
+    font-family:monospace;
+  }
+  .footer-note{
+    text-align:center;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    color:#5c6178;
+    margin-top:28px;
+  }
+  .footer-note a{color:#8a8fa3;}
+
+  @media (max-width:420px){
+    .word-inputs{grid-template-columns:1fr 1fr;}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:.001s !important; transition-duration:.001s !important;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="brand">Make <em>Connections</em></h1>
+  <p class="tagline">build a puzzle · share a link · no login, no server</p>
+
+  <div id="app"></div>
+
+  <p class="footer-note">Inspired by NYT Connections · not affiliated with the New York Times</p>
+</div>
+
+<script>
+const TIER_META = [
+  {name:'tier1', color:'var(--tier1)', label:'Straightforward'},
+  {name:'tier2', color:'var(--tier2)', label:'Medium'},
+  {name:'tier3', color:'var(--tier3)', label:'Tricky'},
+  {name:'tier4', color:'var(--tier4)', label:'Devious'},
+];
+const app = document.getElementById('app');
+
+// ---------- encode / decode ----------
+function encodePuzzle(puzzle){
+  const json = JSON.stringify(puzzle);
+  const b64 = btoa(unescape(encodeURIComponent(json)));
+  return b64;
+}
+function decodePuzzle(b64){
+  try{
+    const json = decodeURIComponent(escape(atob(b64)));
+    const data = JSON.parse(json);
+    if(!data.groups || data.groups.length !== 4) return null;
+    for(const g of data.groups){
+      if(!g.name || !Array.isArray(g.words) || g.words.length !== 4) return null;
+    }
+    return data;
+  }catch(e){ return null; }
+}
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+// ---------- routing ----------
+function getHashPuzzle(){
+  const hash = window.location.hash;
+  const m = hash.match(/[#&]p=([^&]+)/);
+  if(!m) return null;
+  return decodePuzzle(decodeURIComponent(m[1]));
+}
+
+const existingPuzzle = getHashPuzzle();
+if(existingPuzzle){
+  renderPlay(existingPuzzle);
+} else {
+  renderCreate();
+}
+
+// =========================================================
+// CREATE MODE
+// =========================================================
+function renderCreate(){
+  app.innerHTML = `
+    <div class="card">
+      <label class="field-label">Puzzle title (optional)</label>
+      <input class="puzzle-title" id="titleInput" placeholder="e.g. Friday Night Connections" maxlength="60">
+
+      <label class="field-label">Four groups, easiest to trickiest</label>
+      <div id="groupsHost"></div>
+
+      <p class="error-msg" id="errMsg"></p>
+      <button class="btn-primary" id="genBtn">Generate share link</button>
+
+      <div class="share-box" id="shareBox" style="display:none;">
+        <label class="field-label">Send this to a friend</label>
+        <div class="share-link-row">
+          <input id="shareLink" readonly>
+          <button id="copyBtn">Copy</button>
+        </div>
+        <p class="copied-tag" id="copiedTag"></p>
+        <button class="btn-ghost" id="previewBtn" style="margin-top:12px;width:100%;">Preview it yourself first</button>
+      </div>
+    </div>
+  `;
+
+  const groupsHost = document.getElementById('groupsHost');
+  groupsHost.innerHTML = TIER_META.map((t,i) => `
+    <div class="group-row">
+      <div class="group-tier" style="background:${t.color}"></div>
+      <div class="group-body">
+        <span class="tier-label">${t.label}</span>
+        <input class="cat-name" data-tier="${i}" placeholder="Category name" maxlength="40">
+        <div class="word-inputs">
+          ${[0,1,2,3].map(w => `<input data-tier="${i}" data-word="${w}" placeholder="Word ${w+1}" maxlength="24">`).join('')}
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  document.getElementById('genBtn').addEventListener('click', onGenerate);
+}
+
+function onGenerate(){
+  const errEl = document.getElementById('errMsg');
+  errEl.textContent = '';
+  const title = document.getElementById('titleInput').value.trim();
+  const groups = [];
+  const seen = new Set();
+  let ok = true;
+
+  for(let i=0;i<4;i++){
+    const nameEl = document.querySelector(`.cat-name[data-tier="${i}"]`);
+    const name = nameEl.value.trim();
+    if(!name){ ok = false; }
+    const words = [];
+    for(let w=0; w<4; w++){
+      const wordEl = document.querySelector(`input[data-tier="${i}"][data-word="${w}"]`);
+      const val = wordEl.value.trim();
+      if(!val){ ok = false; }
+      const key = val.toLowerCase();
+      if(val && seen.has(key)){
+        errEl.textContent = `"${val}" appears more than once — every word needs to be unique.`;
+        ok = false;
+      }
+      seen.add(key);
+      words.push(val);
+    }
+    groups.push({name, words, tier:i});
+  }
+
+  if(!ok){
+    if(!errEl.textContent) errEl.textContent = 'Fill in every category name and all 16 words first.';
+    return;
+  }
+
+  const puzzle = { title, groups };
+  const encoded = encodePuzzle(puzzle);
+  const url = `${location.origin}${location.pathname}#p=${encodeURIComponent(encoded)}`;
+
+  document.getElementById('shareBox').style.display = 'block';
+  const linkInput = document.getElementById('shareLink');
+  linkInput.value = url;
+
+  document.getElementById('copyBtn').onclick = () => {
+    linkInput.select();
+    navigator.clipboard.writeText(url).then(()=>{
+      document.getElementById('copiedTag').textContent = 'Copied!';
+      setTimeout(()=>{ document.getElementById('copiedTag').textContent=''; }, 2000);
+    }).catch(()=>{
+      document.getElementById('copiedTag').textContent = 'Select the text and copy manually.';
+    });
+  };
+  document.getElementById('previewBtn').onclick = () => {
+    window.location.hash = `p=${encodeURIComponent(encoded)}`;
+    window.location.reload();
+  };
+
+  document.getElementById('shareBox').scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+// =========================================================
+// PLAY MODE
+// =========================================================
+function renderPlay(puzzle){
+  const state = {
+    puzzle,
+    tiles: shuffle(puzzle.groups.flatMap((g,gi)=> g.words.map(w=>({word:w, tier:gi})))),
+    selected: [],
+    solvedTiers: [],
+    mistakes: 0,
+    maxMistakes: 4,
+    finished: false,
+    won: false,
+    guessLog: [], // for share grid: array of arrays of tier-colors per guess
+  };
+
+  app.innerHTML = `
+    <div class="card">
+      <h2 class="play-title">${puzzle.title ? escapeHtml(puzzle.title) : 'Connections'}</h2>
+      <p class="play-sub">find four groups of four</p>
+
+      <div class="status-row">
+        <span id="mistakesLabel">Mistakes remaining</span>
+        <div class="mistakes" id="mistakesDots"></div>
+      </div>
+
+      <p class="hint-msg" id="hintMsg"></p>
+      <div class="grid" id="grid"></div>
+
+      <div class="action-row">
+        <button class="btn-secondary" id="shuffleBtn">Shuffle</button>
+        <button class="btn-secondary" id="deselectBtn">Deselect all</button>
+        <button class="btn-submit" id="submitBtn" disabled>Submit</button>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:18px;">
+      <a href="${location.origin}${location.pathname}" class="btn-ghost" style="text-decoration:none;display:inline-block;padding:11px 18px;border-radius:10px;font-family:'Space Grotesk',sans-serif;font-size:13px;">Make your own puzzle</a>
+    </div>
+  `;
+
+  renderMistakes(state);
+  renderGrid(state);
+
+  document.getElementById('shuffleBtn').onclick = () => {
+    if(state.finished) return;
+    const unsolved = state.tiles.filter(t=>!state.solvedTiers.includes(t.tier));
+    state.tiles = [...shuffle(unsolved)];
+    renderGrid(state);
+  };
+  document.getElementById('deselectBtn').onclick = () => {
+    state.selected = [];
+    renderGrid(state);
+  };
+  document.getElementById('submitBtn').onclick = () => onSubmit(state);
+}
+
+function renderMistakes(state){
+  const dotsHost = document.getElementById('mistakesDots');
+  dotsHost.innerHTML = '';
+  for(let i=0;i<state.maxMistakes;i++){
+    const dot = document.createElement('div');
+    dot.className = 'mistake-dot' + (i < state.mistakes ? ' used' : '');
+    dotsHost.appendChild(dot);
+  }
+}
+
+function renderGrid(state){
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+
+  // solved rows first, in tier order
+  state.solvedTiers.forEach(tier => {
+    const g = state.puzzle.groups[tier];
+    const meta = TIER_META[tier];
+    const row = document.createElement('div');
+    row.className = 'solved-row';
+    row.style.background = meta.color;
+    row.style.color = '#25231c';
+    row.innerHTML = `
+      <span class="cat" title="${escapeHtml(g.name)}">${escapeHtml(g.name)}</span>
+      <span class="words" title="${escapeHtml(g.words.join(', '))}">${g.words.map(escapeHtml).join(' · ')}</span>
+    `;
+    grid.appendChild(row);
+  });
+
+  // remaining tiles
+  const unsolved = state.tiles.filter(t => !state.solvedTiers.includes(t.tier));
+  unsolved.forEach(t => {
+    const el = document.createElement('div');
+    el.className = 'tile' + (state.selected.includes(t.word) ? ' selected' : '');
+    el.textContent = t.word;
+    el.onclick = () => onTileClick(state, t.word);
+    grid.appendChild(el);
+  });
+
+  document.getElementById('submitBtn').disabled = state.selected.length !== 4 || state.finished;
+}
+
+function onTileClick(state, word){
+  if(state.finished) return;
+  const idx = state.selected.indexOf(word);
+  if(idx >= 0){
+    state.selected.splice(idx,1);
+  } else {
+    if(state.selected.length >= 4) return;
+    state.selected.push(word);
+  }
+  renderGrid(state);
+}
+
+function onSubmit(state){
+  const hintEl = document.getElementById('hintMsg');
+  hintEl.textContent = '';
+  const chosenTiers = state.selected.map(w => state.tiles.find(t=>t.word===w).tier);
+  const allSame = chosenTiers.every(t => t === chosenTiers[0]);
+
+  if(allSame){
+    const tier = chosenTiers[0];
+    state.solvedTiers.push(tier);
+    state.guessLog.push([tier,tier,tier,tier]);
+    state.selected = [];
+    renderGrid(state);
+    // squiggle flourish
+    const rows = document.querySelectorAll('.solved-row');
+    const lastRow = rows[rows.length-1];
+    if(lastRow) addSquiggle(lastRow);
+
+    if(state.solvedTiers.length === 4){
+      state.finished = true;
+      state.won = true;
+      setTimeout(()=>renderEnd(state), 700);
+      return;
+    }
+  } else {
+    state.guessLog.push(chosenTiers.slice());
+    // count of most common tier among selection = "one away" check
+    const counts = {};
+    chosenTiers.forEach(t=>counts[t]=(counts[t]||0)+1);
+    const maxCount = Math.max(...Object.values(counts));
+    state.mistakes++;
+    renderMistakes(state);
+
+    // shake selected tiles
+    document.querySelectorAll('.tile.selected').forEach(el => {
+      el.classList.add('shake');
+      setTimeout(()=>el.classList.remove('shake'), 400);
+    });
+
+    if(maxCount === 3){
+      hintEl.textContent = 'One away…';
+    } else {
+      hintEl.textContent = 'Not quite.';
+    }
+
+    if(state.mistakes >= state.maxMistakes){
+      state.finished = true;
+      state.won = false;
+      setTimeout(()=>renderEnd(state), 500);
+      return;
+    }
+  }
+}
+
+function addSquiggle(rowEl){
+  const svgNS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(svgNS, 'svg');
+  svg.setAttribute('class','squiggle');
+  svg.setAttribute('viewBox','0 0 200 10');
+  svg.setAttribute('preserveAspectRatio','none');
+  const path = document.createElementNS(svgNS,'path');
+  path.setAttribute('d','M0,5 Q10,0 20,5 T40,5 T60,5 T80,5 T100,5 T120,5 T140,5 T160,5 T180,5 T200,5');
+  path.setAttribute('stroke', getComputedStyle(document.documentElement).getPropertyValue('--ink') || '#14171F');
+  path.setAttribute('stroke-width','2');
+  path.setAttribute('fill','none');
+  path.setAttribute('stroke-linecap','round');
+  const len = 260;
+  path.style.strokeDasharray = len;
+  path.style.strokeDashoffset = len;
+  path.style.transition = 'stroke-dashoffset .6s ease';
+  svg.appendChild(path);
+  rowEl.appendChild(svg);
+  requestAnimationFrame(()=>{ path.style.strokeDashoffset = 0; });
+}
+
+function renderEnd(state){
+  const tierEmoji = ['🟨','🟩','🟦','🟪'];
+  const gridText = state.guessLog.map(row => row.map(t=>tierEmoji[t]).join('')).join('\n');
+  const title = state.puzzle.title || 'Connections';
+  const resultText = `${title}\n${state.won ? `Solved in ${state.guessLog.length} ${state.guessLog.length===1?'guess':'guesses'}` : 'Didn\u2019t solve it'}\n${gridText}`;
+
+  document.getElementById('app').innerHTML += `
+    <div class="card end-screen" style="margin-top:16px;">
+      <h2 class="play-title">${state.won ? 'Solved it! 🎉' : 'So close — next time!'}</h2>
+      <div class="end-emoji-grid">${gridText.replace(/\n/g,'<br>')}</div>
+      <button class="btn-primary" id="copyResultBtn">Copy result to share</button>
+      <p class="copied-tag" id="endCopiedTag"></p>
+    </div>
+  `;
+  document.getElementById('copyResultBtn').onclick = () => {
+    navigator.clipboard.writeText(resultText).then(()=>{
+      document.getElementById('endCopiedTag').textContent = 'Copied!';
+    }).catch(()=>{
+      document.getElementById('endCopiedTag').textContent = 'Copy not available on this browser.';
+    });
+  };
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+</script>
+</body>
+</html>
